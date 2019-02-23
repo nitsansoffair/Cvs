@@ -1,6 +1,7 @@
 
 import pymysql
 import docx
+import PyPDF2
 import pathlib
 
 from datetime import datetime
@@ -38,15 +39,25 @@ def insert(array):
 
 # Files
 def readtxt(filename):
-    doc = docx.Document(filename)
-    fullText = []
-    for para in doc.paragraphs:
-        fullText.append(para.text)
-    return '\n'.join(fullText)
+    text = ""
+    if indexOf(filename.lower(), "docx") != -1:
+        doc = docx.Document(filename)
+        fullText = []
+        for para in doc.paragraphs:
+            fullText.append(para.text)
+        text = '\n'.join(fullText)
+    elif indexOf(filename.lower(), "pdf") != -1:
+        pdf = open(filename, 'rb')
+        pdfReader = PyPDF2.PdfFileReader(pdf)
+        for i in range(pdfReader.numPages):
+            page = pdfReader.getPage(i)
+            text += page.extractText()
+    return text
 
-def traverseFiles():
+
+
+def traverseFiles(rootDir = "Cvs/eng"):
     Cvs = []
-    rootDir = "Cvs/eng"
     currentDirectory = pathlib.Path(rootDir)
     for currentFile in currentDirectory.iterdir():
         Cvs.append(readtxt(rootDir + str(currentFile)[len(rootDir) : ]))
@@ -105,8 +116,8 @@ def parseCv(Cv):
     array = (full_name, dob, person_id, email, phone, city, marital_status, languages, education, work_experience)
     insert(array)
 
-def parseAllCvs():
-    Cvs = traverseFiles()
+def parseAllCvs(rootDir):
+    Cvs = traverseFiles(rootDir)
     for Cv in Cvs:
         parseCv(Cv)
 
@@ -124,7 +135,14 @@ def printPrevParsed(Cv):
     print "Education: \n", parseEducation(Cv), "\n"
     print "Experience: \n", parseExperience(Cv), "\n"
 
-def printAll():
-    Cvs = traverseFiles()
+def printAll(rootDir):
+    Cvs = traverseFiles(rootDir)
     for i in range(len(Cvs)):
         print Cvs[i]
+
+
+# parseAllCvs()
+# print traverseFiles("Cvs/pdf")
+# print readtxt("Cvs/pdf/NitsanSoffairCVGrad.pdf")
+print readtxt("Cvs/pdf/CV -David Wiener.pdf")
+
