@@ -38,29 +38,40 @@ def insert(array):
 
 
 # Files
-def readtxt(filename):
+def readText(filename):
     text = ""
     if indexOf(filename.lower(), "docx") != -1:
-        doc = docx.Document(filename)
-        fullText = []
-        for para in doc.paragraphs:
-            fullText.append(para.text)
-        text = '\n'.join(fullText)
+        text = readDocx(filename)
     elif indexOf(filename.lower(), "pdf") != -1:
-        pdf = open(filename, 'rb')
-        pdfReader = PyPDF2.PdfFileReader(pdf)
-        for i in range(pdfReader.numPages):
-            page = pdfReader.getPage(i)
-            text += page.extractText()
+        text = readPdf(filename)
     return text
 
+def readPdf(filename):
+    fileObj = open(filename, 'rb')
+    reader = PyPDF2.PdfFileReader(fileObj)
+    nPages = reader.numPages
+    nPagesCurr = 0
+    text = ""
+    while nPagesCurr < nPages:
+        pageObj = reader.getPage(nPagesCurr)
+        nPagesCurr += 1
+        text += pageObj.extractText()
+    fileObj.close()
+    return text
 
+def readDocx(filename):
+    doc = docx.Document(filename)
+    fullText = []
+    for para in doc.paragraphs:
+        fullText.append(para.text)
+    text = '\n'.join(fullText)
+    return text
 
 def traverseFiles(rootDir = "Cvs/eng"):
     Cvs = []
     currentDirectory = pathlib.Path(rootDir)
     for currentFile in currentDirectory.iterdir():
-        Cvs.append(readtxt(rootDir + str(currentFile)[len(rootDir) : ]))
+        Cvs.append(readText(rootDir + str(currentFile)[len(rootDir) : ]))
     return Cvs
 
 
@@ -141,8 +152,13 @@ def printAll(rootDir):
         print Cvs[i]
 
 
-# parseAllCvs()
-# print traverseFiles("Cvs/pdf")
-# print readtxt("Cvs/pdf/NitsanSoffairCVGrad.pdf")
-print readtxt("Cvs/pdf/CV -David Wiener.pdf")
+# Prints
+print "Pdf:"
+Cvs = traverseFiles("Cvs\pdf")
+for Cv in Cvs:
+    print parseName(Cv)
 
+print "\nDocx:"
+Cvs = traverseFiles("Cvs\eng") + traverseFiles("Cvs\docx")
+for Cv in Cvs:
+    print parseName(Cv)

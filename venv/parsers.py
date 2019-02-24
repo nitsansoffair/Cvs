@@ -11,29 +11,67 @@ def parseName(Cv):
         array = []
         j = 0
         if contains(lines[i], names):
-            fullName += lines[i] + "\n"
             containName = True
+            fullName += lines[i] + "\n"
+            i += 1
+            while i + 1 < len(lines) and not containsOf(lines[i], isLetter) and not containsOf(lines[i], isDigit):
+                i += 1
+            if not title(lines[i]) and containsOf(lines[i], isLetter):
+                fullName += lines[i] + "\n"
+                i += 1
+                if i < len(lines) and containsOf(lines[i], isLetter):
+                    fullName += lines[i]
+                    i += 1
+            fullName = cleanAfter(fullName, ids)
     if containName:
         fullNameLines = string.split(fullName, "\n")
         if len(fullNameLines) == 1:
             fullName = skipOfAndStartFrom(fullName, names, isLetter, [])
-        elif len(fullNameLines) > 1:
+        elif len(fullNameLines) <= 3:
             fullName = skipOfAndStartFrom(fullNameLines[0], names + fnames, isLetter, [])
             fullName += " " + skipOfAndStartFrom(fullNameLines[1], names + lnames, isLetter, [])
+        else:
+            fullName = ""
+            for nameLine in fullNameLines:
+                if contains(nameLine, names + fnames + lnames):
+                    fullName += skipOfAndStartFrom(nameLine, names + fnames, isLetter, [])
+                    idxNameInLine = indexOfSubs(nameLine, fnames + lnames, 1)
+                    if idxNameInLine != -1:
+                        fullName += nameLine[ : idxNameInLine]
+                elif not contains(nameLine, addresses + phones):
+                    fullName += skipOfAndStartFrom(nameLine, names + fnames, isLetter, [])
+            idxSecUpper = indexOfPred(fullName, isUpperCase, 2)
+            fullName = fullName[ : idxSecUpper] + " " + fullName[idxSecUpper : ]
     else:
         lineIdx = 0
-        while not containsOf(lines[lineIdx], isLetter):
+        while lineIdx + 1 < len(lines) and not containsOf(lines[lineIdx], isLetter):
             lineIdx += 1
         firstLetterIdx = getFirstOf(lines[lineIdx], isLetter, [])
         firstLetterLine = lines[lineIdx][firstLetterIdx : ]
         fullName = skipOfAndStartFrom(firstLetterLine, prefixes + names, isLetter, [])
+        lineIdx += 1
+        currIter, maxIter = 0, 7
+        addSpace = False
+        while lineIdx < len(lines) and not containsOf(lines[lineIdx], isLetter) and not containsOf(lines[lineIdx], isDigit):
+            lineIdx += 1
+        while currIter < maxIter and lineIdx < len(lines) and containsOf(lines[lineIdx], isLetter) and wordsWithOut(lines[lineIdx], tells, 1):
+            fullName += lines[lineIdx]
+            lineIdx += 1
+            currIter += 1
+            if not addSpace:
+                idxSecUpper = indexOfPred(fullName, isUpperCase, 2)
+                if idxSecUpper != -1:
+                    fullName = fullName[ : idxSecUpper] + " " + fullName[idxSecUpper : ]
+                    addSpace = True
+            while lineIdx < len(lines) and not containsOf(lines[lineIdx], isLetter) and not containsOf(lines[lineIdx], isDigit):
+                lineIdx += 1
     return fullName
 
 def parseDob(Cv):
     lines = string.split(Cv, "\n")
     dob = ""
     for i in range(len(lines)):
-        if contains(lines[i], dobs) and hasOneOf(lines[i], dateFormat):
+        if contains(lines[i], dobs) and containsOf(lines[i], dateFormat):
             after = getWordAfter(lines[i], birthes, dateFormat)
             before = getWordBefore(lines[i], birthes, dateFormat)
             if dateFormat(after):
@@ -64,7 +102,7 @@ def parsePhone(Cv):
     retFlag = False
     for i in range(len(lines)):
         words = string.split(lines[i], " ")
-        if contains(lines[i], phones + tells + cells) and hasOneOf(words, phoneFormat):
+        if contains(lines[i], phones + tells + cells) and containsOf(words, phoneFormat):
             after = getWordAfter(lines[i], cells, phoneFormat)
             if not phoneFormat(after):
                 before = getWordBefore(lines[i], cells, phoneFormat)
@@ -149,7 +187,7 @@ def parseEducation(Cv):
     lines = string.split(Cv, "\n")
     education = ""
     for i in range(len(lines)):
-        if contains(lines[i], educations) and (contains(lines[i], [":", "-"]) or oneWordWithOut(lines[i], [])):
+        if contains(lines[i], educations) and (contains(lines[i], [":", "-"]) or wordsWithOut(lines[i], [], 2)):
             i += 1
             while i < len(lines) and not containsOf(lines[i], isLetter):
                 i += 1

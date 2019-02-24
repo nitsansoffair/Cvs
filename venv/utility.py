@@ -5,7 +5,8 @@ import string
 names = ["Name", "name"]
 fnames = ["First Name", "First name", "first name"]
 lnames = ["Last Name", "Last name", "last name"]
-prefixes = ["CV", "Cv", "cv"
+prefixes = ["CV", "Cv", "cv",
+            "RESUME", "Resume", "resume",
             "Personal Details", "Personal details", "personal details"]
 
 dobs = ["Date Of Birth", "Date Of birth", "Date of Birth", "Date of birth", "date of birth"]
@@ -77,7 +78,8 @@ roles = ["Role", "role",
          "CTO", "Cto"]
 
 digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
-empties = [' ', '-', ':', '=', '+', '.', "#"]
+empties = [' ', '  ', '   ', '    ', '     ', '      ', '       ', '        ', '         ', '          ',
+           '-', ':', '=', '+', '.', "#"]
 
 
 # Types
@@ -93,6 +95,9 @@ def isNumber(str):
 def isLetter(char):
     return (char >= 'A' and char <= 'Z') or (char >= 'a' and char <= 'z')
 
+def isUpperCase(char):
+    return (char >= 'A' and char <= 'Z')
+
 
 # contains
 def contains(str, stockArr):
@@ -102,9 +107,9 @@ def contains(str, stockArr):
             return True
     return False
 
-def containsOf(str, pred):
-    for char in str:
-        if pred(char):
+def containsOf(elems, pred):
+    for elem in elems:
+        if pred(elem):
             return True
     return False
 
@@ -116,7 +121,7 @@ def title(str):
     return length <= 3 and contains(str, ["-", ":"])
 
 def titleOf(str, stockArr):
-    return contains(str, stockArr) and (title(str) or oneWordWithOut(str, empties))
+    return contains(str, stockArr) and (title(str) or wordsWithOut(str, empties, 2))
 
 
 # Sub Groups
@@ -131,6 +136,26 @@ def indexOf(str, subStr):
             strIdx += 1
         if j == len(subStr):
             return i
+    return -1
+
+def indexOfSubs(str, stockArr, nSatisfy):
+    currIdx, nCurr = 0, 0
+    while currIdx < len(stockArr) and nCurr < nSatisfy:
+        idxOfCurrSubStr = indexOf(str, stockArr[currIdx])
+        if idxOfCurrSubStr != -1:
+            nCurr += 1
+        currIdx += 1
+    if nCurr == nSatisfy:
+        return idxOfCurrSubStr
+    return -1
+
+def indexOfPred(str, pred, nPriority):
+    nSatisfy = 0
+    for char in str:
+        if pred(char):
+            nSatisfy += 1
+            if nSatisfy == nPriority:
+                return indexOf(str, char)
     return -1
 
 def oneOf(checkedElem, stockArr):
@@ -316,12 +341,6 @@ def containSeqOf(str, requiredNum, stockArr):
 
 
 # Others
-def hasOneOf(elems, pred):
-    for elem in elems:
-        if pred(elem):
-            return True
-    return False
-
 def getRealLen(words):
     realLen = len(words)
     for word in words:
@@ -329,13 +348,13 @@ def getRealLen(words):
             realLen -= 1
     return realLen
 
-def oneWordWithOut(line, stockArr):
+def wordsWithOut(line, stockArr, maxWords):
     words = string.split(line, " ")
     nWords = 0
     for word in words:
         if not oneOf(word, stockArr):
             nWords += 1
-    return nWords <= 2
+    return nWords <= maxWords
 
 def firstWordInLineContains(line, stockArr):
     words = string.split(line, " ")
