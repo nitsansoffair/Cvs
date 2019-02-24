@@ -8,8 +8,6 @@ def parseName(Cv):
     containName = False
     fullName = ""
     for i in range(len(lines)):
-        array = []
-        j = 0
         if contains(lines[i], names):
             containName = True
             fullName += lines[i] + "\n"

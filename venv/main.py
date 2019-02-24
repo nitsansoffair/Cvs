@@ -162,3 +162,5 @@ print "\nDocx:"
 Cvs = traverseFiles("Cvs\eng") + traverseFiles("Cvs\docx")
 for Cv in Cvs:
     print parseName(Cv)
+
+# TODO: finish other Pdf's parsers
